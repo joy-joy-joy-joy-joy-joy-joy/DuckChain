@@ -159,9 +159,9 @@ CMakeFiles/duckchain_crypto.dir/clean:
 # Target rules for target CMakeFiles/crypto_tests.dir
 
 # All Build rule for target.
-CMakeFiles/crypto_tests.dir/all: CMakeFiles/duckchain_crypto.dir/all
 CMakeFiles/crypto_tests.dir/all: _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/all
 CMakeFiles/crypto_tests.dir/all: _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/all
+CMakeFiles/crypto_tests.dir/all: CMakeFiles/duckchain_crypto.dir/all
 CMakeFiles/crypto_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest.dir/all
 CMakeFiles/crypto_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/crypto_tests.dir/build.make CMakeFiles/crypto_tests.dir/depend
