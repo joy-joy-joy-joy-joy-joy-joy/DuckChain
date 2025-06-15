@@ -172,58 +172,6 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named gmock
-
-# Build rule for target.
-gmock: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gmock
-.PHONY : gmock
-
-# fast build rule for target.
-gmock/fast:
-	$(MAKE) $(MAKESILENT) -f _deps/gtest-build/googlemock/CMakeFiles/gmock.dir/build.make _deps/gtest-build/googlemock/CMakeFiles/gmock.dir/build
-.PHONY : gmock/fast
-
-#=============================================================================
-# Target rules for targets named gmock_main
-
-# Build rule for target.
-gmock_main: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gmock_main
-.PHONY : gmock_main
-
-# fast build rule for target.
-gmock_main/fast:
-	$(MAKE) $(MAKESILENT) -f _deps/gtest-build/googlemock/CMakeFiles/gmock_main.dir/build.make _deps/gtest-build/googlemock/CMakeFiles/gmock_main.dir/build
-.PHONY : gmock_main/fast
-
-#=============================================================================
-# Target rules for targets named gtest
-
-# Build rule for target.
-gtest: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gtest
-.PHONY : gtest
-
-# fast build rule for target.
-gtest/fast:
-	$(MAKE) $(MAKESILENT) -f _deps/gtest-build/googletest/CMakeFiles/gtest.dir/build.make _deps/gtest-build/googletest/CMakeFiles/gtest.dir/build
-.PHONY : gtest/fast
-
-#=============================================================================
-# Target rules for targets named gtest_main
-
-# Build rule for target.
-gtest_main: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gtest_main
-.PHONY : gtest_main
-
-# fast build rule for target.
-gtest_main/fast:
-	$(MAKE) $(MAKESILENT) -f _deps/gtest-build/googletest/CMakeFiles/gtest_main.dir/build.make _deps/gtest-build/googletest/CMakeFiles/gtest_main.dir/build
-.PHONY : gtest_main/fast
-
-#=============================================================================
 # Target rules for targets named duckchain_crypto
 
 # Build rule for target.
@@ -233,7 +181,7 @@ duckchain_crypto: cmake_check_build_system
 
 # fast build rule for target.
 duckchain_crypto/fast:
-	$(MAKE) $(MAKESILENT) -f src/crypto/CMakeFiles/duckchain_crypto.dir/build.make src/crypto/CMakeFiles/duckchain_crypto.dir/build
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/duckchain_crypto.dir/build.make CMakeFiles/duckchain_crypto.dir/build
 .PHONY : duckchain_crypto/fast
 
 #=============================================================================
@@ -246,8 +194,252 @@ crypto_tests: cmake_check_build_system
 
 # fast build rule for target.
 crypto_tests/fast:
-	$(MAKE) $(MAKESILENT) -f test/crypto/CMakeFiles/crypto_tests.dir/build.make test/crypto/CMakeFiles/crypto_tests.dir/build
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crypto_tests.dir/build.make CMakeFiles/crypto_tests.dir/build
 .PHONY : crypto_tests/fast
+
+#=============================================================================
+# Target rules for targets named gmock
+
+# Build rule for target.
+gmock: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gmock
+.PHONY : gmock
+
+# fast build rule for target.
+gmock/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/build.make _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/build
+.PHONY : gmock/fast
+
+#=============================================================================
+# Target rules for targets named gmock_main
+
+# Build rule for target.
+gmock_main: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gmock_main
+.PHONY : gmock_main
+
+# fast build rule for target.
+gmock_main/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/build.make _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/build
+.PHONY : gmock_main/fast
+
+#=============================================================================
+# Target rules for targets named gtest
+
+# Build rule for target.
+gtest: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gtest
+.PHONY : gtest
+
+# fast build rule for target.
+gtest/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googletest/CMakeFiles/gtest.dir/build.make _deps/googletest-build/googletest/CMakeFiles/gtest.dir/build
+.PHONY : gtest/fast
+
+#=============================================================================
+# Target rules for targets named gtest_main
+
+# Build rule for target.
+gtest_main: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gtest_main
+.PHONY : gtest_main
+
+# fast build rule for target.
+gtest_main/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/build.make _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/build
+.PHONY : gtest_main/fast
+
+src/crypto/core/bls12_381.o: src/crypto/core/bls12_381.cpp.o
+.PHONY : src/crypto/core/bls12_381.o
+
+# target to build an object file
+src/crypto/core/bls12_381.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/duckchain_crypto.dir/build.make CMakeFiles/duckchain_crypto.dir/src/crypto/core/bls12_381.cpp.o
+.PHONY : src/crypto/core/bls12_381.cpp.o
+
+src/crypto/core/bls12_381.i: src/crypto/core/bls12_381.cpp.i
+.PHONY : src/crypto/core/bls12_381.i
+
+# target to preprocess a source file
+src/crypto/core/bls12_381.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/duckchain_crypto.dir/build.make CMakeFiles/duckchain_crypto.dir/src/crypto/core/bls12_381.cpp.i
+.PHONY : src/crypto/core/bls12_381.cpp.i
+
+src/crypto/core/bls12_381.s: src/crypto/core/bls12_381.cpp.s
+.PHONY : src/crypto/core/bls12_381.s
+
+# target to generate assembly for a file
+src/crypto/core/bls12_381.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/duckchain_crypto.dir/build.make CMakeFiles/duckchain_crypto.dir/src/crypto/core/bls12_381.cpp.s
+.PHONY : src/crypto/core/bls12_381.cpp.s
+
+src/crypto/core/ed25519.o: src/crypto/core/ed25519.cpp.o
+.PHONY : src/crypto/core/ed25519.o
+
+# target to build an object file
+src/crypto/core/ed25519.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/duckchain_crypto.dir/build.make CMakeFiles/duckchain_crypto.dir/src/crypto/core/ed25519.cpp.o
+.PHONY : src/crypto/core/ed25519.cpp.o
+
+src/crypto/core/ed25519.i: src/crypto/core/ed25519.cpp.i
+.PHONY : src/crypto/core/ed25519.i
+
+# target to preprocess a source file
+src/crypto/core/ed25519.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/duckchain_crypto.dir/build.make CMakeFiles/duckchain_crypto.dir/src/crypto/core/ed25519.cpp.i
+.PHONY : src/crypto/core/ed25519.cpp.i
+
+src/crypto/core/ed25519.s: src/crypto/core/ed25519.cpp.s
+.PHONY : src/crypto/core/ed25519.s
+
+# target to generate assembly for a file
+src/crypto/core/ed25519.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/duckchain_crypto.dir/build.make CMakeFiles/duckchain_crypto.dir/src/crypto/core/ed25519.cpp.s
+.PHONY : src/crypto/core/ed25519.cpp.s
+
+src/crypto/core/secp256k1.o: src/crypto/core/secp256k1.cpp.o
+.PHONY : src/crypto/core/secp256k1.o
+
+# target to build an object file
+src/crypto/core/secp256k1.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/duckchain_crypto.dir/build.make CMakeFiles/duckchain_crypto.dir/src/crypto/core/secp256k1.cpp.o
+.PHONY : src/crypto/core/secp256k1.cpp.o
+
+src/crypto/core/secp256k1.i: src/crypto/core/secp256k1.cpp.i
+.PHONY : src/crypto/core/secp256k1.i
+
+# target to preprocess a source file
+src/crypto/core/secp256k1.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/duckchain_crypto.dir/build.make CMakeFiles/duckchain_crypto.dir/src/crypto/core/secp256k1.cpp.i
+.PHONY : src/crypto/core/secp256k1.cpp.i
+
+src/crypto/core/secp256k1.s: src/crypto/core/secp256k1.cpp.s
+.PHONY : src/crypto/core/secp256k1.s
+
+# target to generate assembly for a file
+src/crypto/core/secp256k1.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/duckchain_crypto.dir/build.make CMakeFiles/duckchain_crypto.dir/src/crypto/core/secp256k1.cpp.s
+.PHONY : src/crypto/core/secp256k1.cpp.s
+
+src/crypto/utils/crypto_utils.o: src/crypto/utils/crypto_utils.cpp.o
+.PHONY : src/crypto/utils/crypto_utils.o
+
+# target to build an object file
+src/crypto/utils/crypto_utils.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/duckchain_crypto.dir/build.make CMakeFiles/duckchain_crypto.dir/src/crypto/utils/crypto_utils.cpp.o
+.PHONY : src/crypto/utils/crypto_utils.cpp.o
+
+src/crypto/utils/crypto_utils.i: src/crypto/utils/crypto_utils.cpp.i
+.PHONY : src/crypto/utils/crypto_utils.i
+
+# target to preprocess a source file
+src/crypto/utils/crypto_utils.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/duckchain_crypto.dir/build.make CMakeFiles/duckchain_crypto.dir/src/crypto/utils/crypto_utils.cpp.i
+.PHONY : src/crypto/utils/crypto_utils.cpp.i
+
+src/crypto/utils/crypto_utils.s: src/crypto/utils/crypto_utils.cpp.s
+.PHONY : src/crypto/utils/crypto_utils.s
+
+# target to generate assembly for a file
+src/crypto/utils/crypto_utils.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/duckchain_crypto.dir/build.make CMakeFiles/duckchain_crypto.dir/src/crypto/utils/crypto_utils.cpp.s
+.PHONY : src/crypto/utils/crypto_utils.cpp.s
+
+test/crypto/core/bls12_381_test.o: test/crypto/core/bls12_381_test.cpp.o
+.PHONY : test/crypto/core/bls12_381_test.o
+
+# target to build an object file
+test/crypto/core/bls12_381_test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crypto_tests.dir/build.make CMakeFiles/crypto_tests.dir/test/crypto/core/bls12_381_test.cpp.o
+.PHONY : test/crypto/core/bls12_381_test.cpp.o
+
+test/crypto/core/bls12_381_test.i: test/crypto/core/bls12_381_test.cpp.i
+.PHONY : test/crypto/core/bls12_381_test.i
+
+# target to preprocess a source file
+test/crypto/core/bls12_381_test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crypto_tests.dir/build.make CMakeFiles/crypto_tests.dir/test/crypto/core/bls12_381_test.cpp.i
+.PHONY : test/crypto/core/bls12_381_test.cpp.i
+
+test/crypto/core/bls12_381_test.s: test/crypto/core/bls12_381_test.cpp.s
+.PHONY : test/crypto/core/bls12_381_test.s
+
+# target to generate assembly for a file
+test/crypto/core/bls12_381_test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crypto_tests.dir/build.make CMakeFiles/crypto_tests.dir/test/crypto/core/bls12_381_test.cpp.s
+.PHONY : test/crypto/core/bls12_381_test.cpp.s
+
+test/crypto/core/ed25519_test.o: test/crypto/core/ed25519_test.cpp.o
+.PHONY : test/crypto/core/ed25519_test.o
+
+# target to build an object file
+test/crypto/core/ed25519_test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crypto_tests.dir/build.make CMakeFiles/crypto_tests.dir/test/crypto/core/ed25519_test.cpp.o
+.PHONY : test/crypto/core/ed25519_test.cpp.o
+
+test/crypto/core/ed25519_test.i: test/crypto/core/ed25519_test.cpp.i
+.PHONY : test/crypto/core/ed25519_test.i
+
+# target to preprocess a source file
+test/crypto/core/ed25519_test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crypto_tests.dir/build.make CMakeFiles/crypto_tests.dir/test/crypto/core/ed25519_test.cpp.i
+.PHONY : test/crypto/core/ed25519_test.cpp.i
+
+test/crypto/core/ed25519_test.s: test/crypto/core/ed25519_test.cpp.s
+.PHONY : test/crypto/core/ed25519_test.s
+
+# target to generate assembly for a file
+test/crypto/core/ed25519_test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crypto_tests.dir/build.make CMakeFiles/crypto_tests.dir/test/crypto/core/ed25519_test.cpp.s
+.PHONY : test/crypto/core/ed25519_test.cpp.s
+
+test/crypto/core/secp256k1_test.o: test/crypto/core/secp256k1_test.cpp.o
+.PHONY : test/crypto/core/secp256k1_test.o
+
+# target to build an object file
+test/crypto/core/secp256k1_test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crypto_tests.dir/build.make CMakeFiles/crypto_tests.dir/test/crypto/core/secp256k1_test.cpp.o
+.PHONY : test/crypto/core/secp256k1_test.cpp.o
+
+test/crypto/core/secp256k1_test.i: test/crypto/core/secp256k1_test.cpp.i
+.PHONY : test/crypto/core/secp256k1_test.i
+
+# target to preprocess a source file
+test/crypto/core/secp256k1_test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crypto_tests.dir/build.make CMakeFiles/crypto_tests.dir/test/crypto/core/secp256k1_test.cpp.i
+.PHONY : test/crypto/core/secp256k1_test.cpp.i
+
+test/crypto/core/secp256k1_test.s: test/crypto/core/secp256k1_test.cpp.s
+.PHONY : test/crypto/core/secp256k1_test.s
+
+# target to generate assembly for a file
+test/crypto/core/secp256k1_test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crypto_tests.dir/build.make CMakeFiles/crypto_tests.dir/test/crypto/core/secp256k1_test.cpp.s
+.PHONY : test/crypto/core/secp256k1_test.cpp.s
+
+test/crypto/utils/crypto_utils_test.o: test/crypto/utils/crypto_utils_test.cpp.o
+.PHONY : test/crypto/utils/crypto_utils_test.o
+
+# target to build an object file
+test/crypto/utils/crypto_utils_test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crypto_tests.dir/build.make CMakeFiles/crypto_tests.dir/test/crypto/utils/crypto_utils_test.cpp.o
+.PHONY : test/crypto/utils/crypto_utils_test.cpp.o
+
+test/crypto/utils/crypto_utils_test.i: test/crypto/utils/crypto_utils_test.cpp.i
+.PHONY : test/crypto/utils/crypto_utils_test.i
+
+# target to preprocess a source file
+test/crypto/utils/crypto_utils_test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crypto_tests.dir/build.make CMakeFiles/crypto_tests.dir/test/crypto/utils/crypto_utils_test.cpp.i
+.PHONY : test/crypto/utils/crypto_utils_test.cpp.i
+
+test/crypto/utils/crypto_utils_test.s: test/crypto/utils/crypto_utils_test.cpp.s
+.PHONY : test/crypto/utils/crypto_utils_test.s
+
+# target to generate assembly for a file
+test/crypto/utils/crypto_utils_test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/crypto_tests.dir/build.make CMakeFiles/crypto_tests.dir/test/crypto/utils/crypto_utils_test.cpp.s
+.PHONY : test/crypto/utils/crypto_utils_test.cpp.s
 
 # Help Target
 help:
@@ -268,6 +460,30 @@ help:
 	@echo "... gmock_main"
 	@echo "... gtest"
 	@echo "... gtest_main"
+	@echo "... src/crypto/core/bls12_381.o"
+	@echo "... src/crypto/core/bls12_381.i"
+	@echo "... src/crypto/core/bls12_381.s"
+	@echo "... src/crypto/core/ed25519.o"
+	@echo "... src/crypto/core/ed25519.i"
+	@echo "... src/crypto/core/ed25519.s"
+	@echo "... src/crypto/core/secp256k1.o"
+	@echo "... src/crypto/core/secp256k1.i"
+	@echo "... src/crypto/core/secp256k1.s"
+	@echo "... src/crypto/utils/crypto_utils.o"
+	@echo "... src/crypto/utils/crypto_utils.i"
+	@echo "... src/crypto/utils/crypto_utils.s"
+	@echo "... test/crypto/core/bls12_381_test.o"
+	@echo "... test/crypto/core/bls12_381_test.i"
+	@echo "... test/crypto/core/bls12_381_test.s"
+	@echo "... test/crypto/core/ed25519_test.o"
+	@echo "... test/crypto/core/ed25519_test.i"
+	@echo "... test/crypto/core/ed25519_test.s"
+	@echo "... test/crypto/core/secp256k1_test.o"
+	@echo "... test/crypto/core/secp256k1_test.i"
+	@echo "... test/crypto/core/secp256k1_test.s"
+	@echo "... test/crypto/utils/crypto_utils_test.o"
+	@echo "... test/crypto/utils/crypto_utils_test.i"
+	@echo "... test/crypto/utils/crypto_utils_test.s"
 .PHONY : help
 
 

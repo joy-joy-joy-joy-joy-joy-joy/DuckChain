@@ -1,50 +1,74 @@
 [
 {
-  "directory": "/home/joy/hotdata/duckchain/build/_deps/gtest-build/googlemock",
-  "command": "/usr/bin/c++  -I/home/joy/hotdata/duckchain/build/_deps/gtest-src/googlemock/include -I/home/joy/hotdata/duckchain/build/_deps/gtest-src/googlemock -I/home/joy/hotdata/duckchain/build/_deps/gtest-src/include -I/home/joy/hotdata/duckchain/build/_deps/gtest-src -isystem /home/joy/hotdata/duckchain/build/_deps/gtest-src/googletest/include -isystem /home/joy/hotdata/duckchain/build/_deps/gtest-src/googletest -std=c++20 -fPIC -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gmock.dir/src/gmock-all.cc.o -c /home/joy/hotdata/duckchain/build/_deps/gtest-src/googlemock/src/gmock-all.cc",
-  "file": "/home/joy/hotdata/duckchain/build/_deps/gtest-src/googlemock/src/gmock-all.cc",
-  "output": "_deps/gtest-build/googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o"
+  "directory": "/home/joy/hotdata/duckchain/build",
+  "command": "/usr/bin/c++  -I/home/joy/hotdata/duckchain/src -isystem /home/joy/hotdata/duckchain/third_party/blst/bindings -isystem /home/joy/hotdata/duckchain/third_party/secp256k1/include -std=gnu++20 -o CMakeFiles/duckchain_crypto.dir/src/crypto/utils/crypto_utils.cpp.o -c /home/joy/hotdata/duckchain/src/crypto/utils/crypto_utils.cpp",
+  "file": "/home/joy/hotdata/duckchain/src/crypto/utils/crypto_utils.cpp",
+  "output": "CMakeFiles/duckchain_crypto.dir/src/crypto/utils/crypto_utils.cpp.o"
 },
 {
-  "directory": "/home/joy/hotdata/duckchain/build/_deps/gtest-build/googlemock",
-  "command": "/usr/bin/c++  -isystem /home/joy/hotdata/duckchain/build/_deps/gtest-src/googlemock/include -isystem /home/joy/hotdata/duckchain/build/_deps/gtest-src/googlemock -isystem /home/joy/hotdata/duckchain/build/_deps/gtest-src/include -isystem /home/joy/hotdata/duckchain/build/_deps/gtest-src -isystem /home/joy/hotdata/duckchain/build/_deps/gtest-src/googletest/include -isystem /home/joy/hotdata/duckchain/build/_deps/gtest-src/googletest -std=c++20 -fPIC -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gmock_main.dir/src/gmock_main.cc.o -c /home/joy/hotdata/duckchain/build/_deps/gtest-src/googlemock/src/gmock_main.cc",
-  "file": "/home/joy/hotdata/duckchain/build/_deps/gtest-src/googlemock/src/gmock_main.cc",
-  "output": "_deps/gtest-build/googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o"
-},
-{
-  "directory": "/home/joy/hotdata/duckchain/build/_deps/gtest-build/googletest",
-  "command": "/usr/bin/c++  -I/home/joy/hotdata/duckchain/build/_deps/gtest-src/googletest/include -I/home/joy/hotdata/duckchain/build/_deps/gtest-src/googletest -std=c++20 -fPIC -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gtest.dir/src/gtest-all.cc.o -c /home/joy/hotdata/duckchain/build/_deps/gtest-src/googletest/src/gtest-all.cc",
-  "file": "/home/joy/hotdata/duckchain/build/_deps/gtest-src/googletest/src/gtest-all.cc",
-  "output": "_deps/gtest-build/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o"
-},
-{
-  "directory": "/home/joy/hotdata/duckchain/build/_deps/gtest-build/googletest",
-  "command": "/usr/bin/c++  -isystem /home/joy/hotdata/duckchain/build/_deps/gtest-src/googletest/include -isystem /home/joy/hotdata/duckchain/build/_deps/gtest-src/googletest -std=c++20 -fPIC -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gtest_main.dir/src/gtest_main.cc.o -c /home/joy/hotdata/duckchain/build/_deps/gtest-src/googletest/src/gtest_main.cc",
-  "file": "/home/joy/hotdata/duckchain/build/_deps/gtest-src/googletest/src/gtest_main.cc",
-  "output": "_deps/gtest-build/googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o"
-},
-{
-  "directory": "/home/joy/hotdata/duckchain/build/src/crypto",
-  "command": "/usr/bin/c++  -I/home/joy/hotdata/duckchain/src/crypto/.. -std=gnu++20 -fPIC -o CMakeFiles/duckchain_crypto.dir/core/secp256k1.cpp.o -c /home/joy/hotdata/duckchain/src/crypto/core/secp256k1.cpp",
-  "file": "/home/joy/hotdata/duckchain/src/crypto/core/secp256k1.cpp",
-  "output": "src/crypto/CMakeFiles/duckchain_crypto.dir/core/secp256k1.cpp.o"
-},
-{
-  "directory": "/home/joy/hotdata/duckchain/build/src/crypto",
-  "command": "/usr/bin/c++  -I/home/joy/hotdata/duckchain/src/crypto/.. -std=gnu++20 -fPIC -o CMakeFiles/duckchain_crypto.dir/core/ed25519.cpp.o -c /home/joy/hotdata/duckchain/src/crypto/core/ed25519.cpp",
+  "directory": "/home/joy/hotdata/duckchain/build",
+  "command": "/usr/bin/c++  -I/home/joy/hotdata/duckchain/src -isystem /home/joy/hotdata/duckchain/third_party/blst/bindings -isystem /home/joy/hotdata/duckchain/third_party/secp256k1/include -std=gnu++20 -o CMakeFiles/duckchain_crypto.dir/src/crypto/core/ed25519.cpp.o -c /home/joy/hotdata/duckchain/src/crypto/core/ed25519.cpp",
   "file": "/home/joy/hotdata/duckchain/src/crypto/core/ed25519.cpp",
-  "output": "src/crypto/CMakeFiles/duckchain_crypto.dir/core/ed25519.cpp.o"
+  "output": "CMakeFiles/duckchain_crypto.dir/src/crypto/core/ed25519.cpp.o"
 },
 {
-  "directory": "/home/joy/hotdata/duckchain/build/test/crypto",
-  "command": "/usr/bin/c++ -DENABLE_BENCHMARKS -I/home/joy/hotdata/duckchain/src -I/home/joy/hotdata/duckchain/src/crypto/.. -isystem /home/joy/hotdata/duckchain/build/_deps/gtest-src/googletest/include -isystem /home/joy/hotdata/duckchain/build/_deps/gtest-src/googletest -std=gnu++20 -fPIE -o CMakeFiles/crypto_tests.dir/core/secp256k1_test.cpp.o -c /home/joy/hotdata/duckchain/test/crypto/core/secp256k1_test.cpp",
-  "file": "/home/joy/hotdata/duckchain/test/crypto/core/secp256k1_test.cpp",
-  "output": "test/crypto/CMakeFiles/crypto_tests.dir/core/secp256k1_test.cpp.o"
+  "directory": "/home/joy/hotdata/duckchain/build",
+  "command": "/usr/bin/c++  -I/home/joy/hotdata/duckchain/src -isystem /home/joy/hotdata/duckchain/third_party/blst/bindings -isystem /home/joy/hotdata/duckchain/third_party/secp256k1/include -std=gnu++20 -o CMakeFiles/duckchain_crypto.dir/src/crypto/core/secp256k1.cpp.o -c /home/joy/hotdata/duckchain/src/crypto/core/secp256k1.cpp",
+  "file": "/home/joy/hotdata/duckchain/src/crypto/core/secp256k1.cpp",
+  "output": "CMakeFiles/duckchain_crypto.dir/src/crypto/core/secp256k1.cpp.o"
 },
 {
-  "directory": "/home/joy/hotdata/duckchain/build/test/crypto",
-  "command": "/usr/bin/c++ -DENABLE_BENCHMARKS -I/home/joy/hotdata/duckchain/src -I/home/joy/hotdata/duckchain/src/crypto/.. -isystem /home/joy/hotdata/duckchain/build/_deps/gtest-src/googletest/include -isystem /home/joy/hotdata/duckchain/build/_deps/gtest-src/googletest -std=gnu++20 -fPIE -o CMakeFiles/crypto_tests.dir/core/ed25519_test.cpp.o -c /home/joy/hotdata/duckchain/test/crypto/core/ed25519_test.cpp",
+  "directory": "/home/joy/hotdata/duckchain/build",
+  "command": "/usr/bin/c++  -I/home/joy/hotdata/duckchain/src -isystem /home/joy/hotdata/duckchain/third_party/blst/bindings -isystem /home/joy/hotdata/duckchain/third_party/secp256k1/include -std=gnu++20 -o CMakeFiles/duckchain_crypto.dir/src/crypto/core/bls12_381.cpp.o -c /home/joy/hotdata/duckchain/src/crypto/core/bls12_381.cpp",
+  "file": "/home/joy/hotdata/duckchain/src/crypto/core/bls12_381.cpp",
+  "output": "CMakeFiles/duckchain_crypto.dir/src/crypto/core/bls12_381.cpp.o"
+},
+{
+  "directory": "/home/joy/hotdata/duckchain/build",
+  "command": "/usr/bin/c++  -I/home/joy/hotdata/duckchain/src -isystem /home/joy/hotdata/duckchain/third_party/blst/bindings -isystem /home/joy/hotdata/duckchain/third_party/secp256k1/include -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest/include -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googlemock/include -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googlemock -std=gnu++20 -o CMakeFiles/crypto_tests.dir/test/crypto/utils/crypto_utils_test.cpp.o -c /home/joy/hotdata/duckchain/test/crypto/utils/crypto_utils_test.cpp",
+  "file": "/home/joy/hotdata/duckchain/test/crypto/utils/crypto_utils_test.cpp",
+  "output": "CMakeFiles/crypto_tests.dir/test/crypto/utils/crypto_utils_test.cpp.o"
+},
+{
+  "directory": "/home/joy/hotdata/duckchain/build",
+  "command": "/usr/bin/c++  -I/home/joy/hotdata/duckchain/src -isystem /home/joy/hotdata/duckchain/third_party/blst/bindings -isystem /home/joy/hotdata/duckchain/third_party/secp256k1/include -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest/include -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googlemock/include -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googlemock -std=gnu++20 -o CMakeFiles/crypto_tests.dir/test/crypto/core/ed25519_test.cpp.o -c /home/joy/hotdata/duckchain/test/crypto/core/ed25519_test.cpp",
   "file": "/home/joy/hotdata/duckchain/test/crypto/core/ed25519_test.cpp",
-  "output": "test/crypto/CMakeFiles/crypto_tests.dir/core/ed25519_test.cpp.o"
+  "output": "CMakeFiles/crypto_tests.dir/test/crypto/core/ed25519_test.cpp.o"
+},
+{
+  "directory": "/home/joy/hotdata/duckchain/build",
+  "command": "/usr/bin/c++  -I/home/joy/hotdata/duckchain/src -isystem /home/joy/hotdata/duckchain/third_party/blst/bindings -isystem /home/joy/hotdata/duckchain/third_party/secp256k1/include -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest/include -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googlemock/include -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googlemock -std=gnu++20 -o CMakeFiles/crypto_tests.dir/test/crypto/core/secp256k1_test.cpp.o -c /home/joy/hotdata/duckchain/test/crypto/core/secp256k1_test.cpp",
+  "file": "/home/joy/hotdata/duckchain/test/crypto/core/secp256k1_test.cpp",
+  "output": "CMakeFiles/crypto_tests.dir/test/crypto/core/secp256k1_test.cpp.o"
+},
+{
+  "directory": "/home/joy/hotdata/duckchain/build",
+  "command": "/usr/bin/c++  -I/home/joy/hotdata/duckchain/src -isystem /home/joy/hotdata/duckchain/third_party/blst/bindings -isystem /home/joy/hotdata/duckchain/third_party/secp256k1/include -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest/include -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googlemock/include -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googlemock -std=gnu++20 -o CMakeFiles/crypto_tests.dir/test/crypto/core/bls12_381_test.cpp.o -c /home/joy/hotdata/duckchain/test/crypto/core/bls12_381_test.cpp",
+  "file": "/home/joy/hotdata/duckchain/test/crypto/core/bls12_381_test.cpp",
+  "output": "CMakeFiles/crypto_tests.dir/test/crypto/core/bls12_381_test.cpp.o"
+},
+{
+  "directory": "/home/joy/hotdata/duckchain/build/_deps/googletest-build/googlemock",
+  "command": "/usr/bin/c++  -I/home/joy/hotdata/duckchain/build/_deps/googletest-src/googlemock/include -I/home/joy/hotdata/duckchain/build/_deps/googletest-src/googlemock -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest/include -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest -std=c++20 -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gmock.dir/src/gmock-all.cc.o -c /home/joy/hotdata/duckchain/build/_deps/googletest-src/googlemock/src/gmock-all.cc",
+  "file": "/home/joy/hotdata/duckchain/build/_deps/googletest-src/googlemock/src/gmock-all.cc",
+  "output": "_deps/googletest-build/googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o"
+},
+{
+  "directory": "/home/joy/hotdata/duckchain/build/_deps/googletest-build/googlemock",
+  "command": "/usr/bin/c++  -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googlemock/include -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googlemock -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest/include -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest -std=c++20 -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gmock_main.dir/src/gmock_main.cc.o -c /home/joy/hotdata/duckchain/build/_deps/googletest-src/googlemock/src/gmock_main.cc",
+  "file": "/home/joy/hotdata/duckchain/build/_deps/googletest-src/googlemock/src/gmock_main.cc",
+  "output": "_deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o"
+},
+{
+  "directory": "/home/joy/hotdata/duckchain/build/_deps/googletest-build/googletest",
+  "command": "/usr/bin/c++  -I/home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest/include -I/home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest -std=c++20 -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gtest.dir/src/gtest-all.cc.o -c /home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest/src/gtest-all.cc",
+  "file": "/home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest/src/gtest-all.cc",
+  "output": "_deps/googletest-build/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o"
+},
+{
+  "directory": "/home/joy/hotdata/duckchain/build/_deps/googletest-build/googletest",
+  "command": "/usr/bin/c++  -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest/include -isystem /home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest -std=c++20 -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gtest_main.dir/src/gtest_main.cc.o -c /home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest/src/gtest_main.cc",
+  "file": "/home/joy/hotdata/duckchain/build/_deps/googletest-src/googletest/src/gtest_main.cc",
+  "output": "_deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o"
 }
 ]

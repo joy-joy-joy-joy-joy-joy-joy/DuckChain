@@ -4,6 +4,5 @@
 # 
 # This file includes the relevant testing commands required for 
 # testing this directory and lists subdirectories to be tested as well.
-subdirs("_deps/gtest-build")
-subdirs("src/crypto")
-subdirs("test/crypto")
+include("/home/joy/hotdata/duckchain/build/crypto_tests[1]_include.cmake")
+subdirs("_deps/googletest-build")

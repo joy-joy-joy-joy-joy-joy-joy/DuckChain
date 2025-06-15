@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/crypto_tests.dir/core/secp256k1_test.cpp.o CMakeFiles/crypto_tests.dir/core/ed25519_test.cpp.o -o crypto_tests  ../../src/crypto/libduckchain_crypto.a ../../lib/libgtest.a ../../lib/libgtest_main.a /usr/lib/x86_64-linux-gnu/libcrypto.so ../../lib/libgtest.a 
