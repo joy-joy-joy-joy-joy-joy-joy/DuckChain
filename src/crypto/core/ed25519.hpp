@@ -1,50 +1,137 @@
 #pragma once
 
-#include <vector>
 #include <array>
-#include <optional>
+#include <vector>
 #include <string>
-#include <cstdint>
-#include <utility>
+#include <atomic>
+#include "crypto/utils/crypto_utils.hpp"
 
 namespace duckchain {
 namespace crypto {
 
-// 基础类型定义
-using Ed25519PrivateKey = std::array<uint8_t, 32>;
-using Ed25519PublicKey = std::array<uint8_t, 32>;  // Ed25519 公钥是32字节
-using Ed25519Signature = std::array<uint8_t, 64>;  // Ed25519 签名是64字节
-using Ed25519Address = std::array<uint8_t, 20>;    // 20字节地址（与以太坊兼容）
-using Bytes = std::vector<uint8_t>;
-
+/**
+ * @brief Ed25519签名算法实现
+ * 
+ * Ed25519是一个高性能的椭圆曲线数字签名算法
+ * - 快速签名和验证
+ * - 小的密钥和签名尺寸
+ * - 抗侧信道攻击
+ * - 确定性签名
+ * 
+ * 线程安全: 所有成员函数都是线程安全的
+ */
 class Ed25519 {
 public:
-    // 构造和析构
-    Ed25519();
-    ~Ed25519();
-
+    // ========== 类型定义 ==========
+    using PrivateKey = std::array<uint8_t, 32>;    // 32字节私钥
+    using PublicKey = std::array<uint8_t, 32>;     // 32字节公钥
+    using Signature = std::array<uint8_t, 64>;     // 64字节签名
+    using Seed = std::array<uint8_t, 32>;          // 32字节种子
+    using Message = std::vector<uint8_t>;          // 任意长度消息
+    
+    // ========== 构造/析构 ==========
+    Ed25519() = default;
+    ~Ed25519() = default;
+    
     // 禁用拷贝
     Ed25519(const Ed25519&) = delete;
     Ed25519& operator=(const Ed25519&) = delete;
 
-    // 基本操作
-    std::optional<std::pair<Ed25519PrivateKey, Ed25519PublicKey>> generateKeyPair() noexcept;
-    std::optional<Ed25519PublicKey> derivePublicKey(const Ed25519PrivateKey& privateKey) noexcept;
+    // ========== 密钥生成 ==========
     
-    // 签名操作
-    std::optional<Ed25519Signature> sign(const Bytes& message, const Ed25519PrivateKey& privateKey) noexcept;
-    bool verify(const Bytes& message, const Ed25519Signature& signature, const Ed25519PublicKey& publicKey) noexcept;
+    /**
+     * @brief 生成密钥对
+     */
+    bool generate_keypair(PrivateKey& private_key, PublicKey& public_key);
+    
+    /**
+     * @brief 从种子生成密钥对（确定性）
+     */
+    bool keypair_from_seed(PrivateKey& private_key, PublicKey& public_key, const Seed& seed);
+    
+    /**
+     * @brief 从私钥推导公钥
+     */
+    bool derive_public_key(PublicKey& public_key, const PrivateKey& private_key);
 
-    // 地址生成
-    std::optional<Ed25519Address> deriveAddress(const Ed25519PublicKey& publicKey) noexcept;
+    // ========== 签名/验证 ==========
     
-    // 错误信息
-    std::string getLastError() const noexcept { return last_error_; }
+    /**
+     * @brief 对消息进行签名
+     */
+    bool sign(Signature& signature, const Message& message, const PrivateKey& private_key);
+    
+    /**
+     * @brief 验证签名
+     */
+    bool verify(const Signature& signature, const Message& message, const PublicKey& public_key);
+    
+    // ========== 验证和工具 ==========
+    
+    /**
+     * @brief 验证密钥有效性
+     */
+    static bool is_valid_private_key(const PrivateKey& private_key);
+    static bool is_valid_public_key(const PublicKey& public_key);
+    static bool is_valid_signature(const Signature& signature);
+    
+    /**
+     * @brief 生成随机种子
+     */
+    bool generate_seed(Seed& seed);
+
+    // ========== 序列化/反序列化 ==========
+    
+    std::string private_key_to_hex(const PrivateKey& key);
+    std::string public_key_to_hex(const PublicKey& key);
+    std::string signature_to_hex(const Signature& sig);
+    std::string seed_to_hex(const Seed& seed);
+    
+    bool private_key_from_hex(PrivateKey& key, const std::string& hex);
+    bool public_key_from_hex(PublicKey& key, const std::string& hex);
+    bool signature_from_hex(Signature& sig, const std::string& hex);
+    bool seed_from_hex(Seed& seed, const std::string& hex);
+    
+    // Base64 encoding/decoding
+    std::string private_key_to_base64(const PrivateKey& key);
+    std::string public_key_to_base64(const PublicKey& key);
+    std::string signature_to_base64(const Signature& sig);
+    bool private_key_from_base64(PrivateKey& key, const std::string& base64);
+    bool public_key_from_base64(PublicKey& key, const std::string& base64);
+    bool signature_from_base64(Signature& sig, const std::string& base64);
+
+    // Detached signatures
+    bool sign_detached(Signature& signature, const Message& message, const PrivateKey& private_key);
+    bool verify_detached(const Signature& signature, const Message& message, const PublicKey& public_key);
+
+    // Multi-signature support
+    bool aggregate_public_keys(PublicKey& aggregated_key, const std::vector<PublicKey>& public_keys);
+    bool verify_multisig(const std::vector<Signature>& signatures,
+                        const Message& message,
+                        const std::vector<PublicKey>& public_keys,
+                        size_t threshold);
+
+    // ========== 性能统计（线程安全） ==========
+    
+    struct Statistics {
+        std::atomic<uint64_t> keypairs_generated{0};
+        std::atomic<uint64_t> signatures_created{0};
+        std::atomic<uint64_t> signatures_verified{0};
+        
+        uint64_t get_keypairs_generated() const { return keypairs_generated.load(); }
+        uint64_t get_signatures_created() const { return signatures_created.load(); }
+        uint64_t get_signatures_verified() const { return signatures_verified.load(); }
+    };
+    
+    static Statistics& get_statistics();
 
 private:
-    // 错误处理
-    std::string last_error_;
-    void setError(const std::string& error) noexcept { last_error_ = error; }
+    void increment_keypair_count();
+    void increment_sign_count();
+    void increment_verify_count();
+    void record_sign_time(double time_ms) const;
+    void record_verify_time(double time_ms) const;
+    void set_error(const std::string& error) const;
 };
 
 } // namespace crypto

@@ -1,368 +1,231 @@
 #include "crypto/core/secp256k1.hpp"
-#include <openssl/ec.h>
-#include <openssl/obj_mac.h>
-#include <openssl/bn.h>
-#include <openssl/ecdsa.h>
-#include <openssl/evp.h>
-#include <openssl/rand.h>
-#include <openssl/err.h>
-#include <openssl/param_build.h>
-#include <openssl/core_names.h>
-#include <memory>
-#include <algorithm>
+#include <secp256k1.h>
+#include <chrono>
+#include <cstring>
 
 namespace duckchain {
 namespace crypto {
 
-namespace {
-    // 工具函数: 获取OpenSSL错误信息
-    std::string getOpenSSLError() {
-        char err_buf[256];
-        unsigned long err = ERR_get_error();
-        ERR_error_string_n(err, err_buf, sizeof(err_buf));
-        return std::string(err_buf);
+using namespace utils;
+
+// ========== 构造/析构 ==========
+
+Secp256k1::Secp256k1() : context_(nullptr) {
+    // 创建secp256k1上下文
+    context_ = secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY);
+    if (!context_) {
+        set_error("Failed to create secp256k1 context");
+    }
+}
+
+Secp256k1::~Secp256k1() {
+    if (context_) {
+        secp256k1_context_destroy(static_cast<secp256k1_context*>(context_));
+    }
     }
 
-    // 工具函数: 计算SHA256哈希
-    std::vector<uint8_t> sha256(const std::vector<uint8_t>& data) {
-        std::vector<uint8_t> hash(32);
-        std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx(
-            EVP_MD_CTX_new(),
-            EVP_MD_CTX_free
-        );
-        EVP_DigestInit_ex(ctx.get(), EVP_sha256(), nullptr);
-        EVP_DigestUpdate(ctx.get(), data.data(), data.size());
-        EVP_DigestFinal_ex(ctx.get(), hash.data(), nullptr);
-        return hash;
+// ========== 密钥生成 ==========
+
+bool Secp256k1::generate_private_key(PrivateKey& private_key) {
+    if (!context_) {
+        set_error("secp256k1 context not initialized");
+        return false;
     }
-
-    // 工具函数: 计算Keccak-256哈希
-    std::vector<uint8_t> keccak256(const std::vector<uint8_t>& data) {
-        std::vector<uint8_t> hash(32);
-        std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx(
-            EVP_MD_CTX_new(),
-            EVP_MD_CTX_free
-        );
-        EVP_DigestInit_ex(ctx.get(), EVP_sha3_256(), nullptr);
-        EVP_DigestUpdate(ctx.get(), data.data(), data.size());
-        EVP_DigestFinal_ex(ctx.get(), hash.data(), nullptr);
-        return hash;
-    }
-
-    // 工具函数: 创建secp256k1密钥对
-    std::unique_ptr<EC_KEY, decltype(&EC_KEY_free)> createKeyPair() {
-        // 创建secp256k1曲线
-        std::unique_ptr<EC_GROUP, decltype(&EC_GROUP_free)> group(
-            EC_GROUP_new_by_curve_name(NID_secp256k1),
-            EC_GROUP_free
-        );
-        if (!group) return {nullptr, EC_KEY_free};
-
-        // 创建密钥对
-        std::unique_ptr<EC_KEY, decltype(&EC_KEY_free)> key(
-            EC_KEY_new(),
-            EC_KEY_free
-        );
-        if (!key) return {nullptr, EC_KEY_free};
-
-        // 设置曲线
-        if (EC_KEY_set_group(key.get(), group.get()) != 1) {
-            return {nullptr, EC_KEY_free};
-        }
-
-        // 生成密钥对
-        if (EC_KEY_generate_key(key.get()) != 1) {
-            return {nullptr, EC_KEY_free};
-        }
-
-        return key;
-    }
-
-    // 工具函数: 从EC_KEY导出私钥
-    bool exportPrivateKey(EC_KEY* key, PrivateKey& out) {
-        const BIGNUM* priv = EC_KEY_get0_private_key(key);
-        if (!priv) return false;
+    
+    try {
+        // 生成随机私钥，并验证有效性
+        do {
+            if (!secure_random_bytes(private_key)) {
+                set_error("Failed to generate random bytes for private key");
+                return false;
+            }
+        } while (!secp256k1_ec_seckey_verify(static_cast<secp256k1_context*>(context_), private_key.data()));
         
-        return BN_bn2binpad(priv, out.data(), out.size()) == static_cast<int>(out.size());
-    }
-
-    // 工具函数: 从EC_KEY导出公钥
-    bool exportPublicKey(EC_KEY* key, PublicKey& out) {
-        const EC_POINT* pub = EC_KEY_get0_public_key(key);
-        if (!pub) return false;
-
-        const EC_GROUP* group = EC_KEY_get0_group(key);
-        if (!group) return false;
-
-        size_t len = EC_POINT_point2oct(group, pub, POINT_CONVERSION_COMPRESSED,
-                                      out.data(), out.size(), nullptr);
-        return len == out.size();
-    }
-
-    // 工具函数: 从私钥数据创建EC_KEY
-    std::unique_ptr<EC_KEY, decltype(&EC_KEY_free)> createFromPrivateKey(const PrivateKey& privateKey) {
-        // 创建secp256k1曲线
-        std::unique_ptr<EC_GROUP, decltype(&EC_GROUP_free)> group(
-            EC_GROUP_new_by_curve_name(NID_secp256k1),
-            EC_GROUP_free
-        );
-        if (!group) return {nullptr, EC_KEY_free};
-
-        // 创建密钥对
-        std::unique_ptr<EC_KEY, decltype(&EC_KEY_free)> key(
-            EC_KEY_new(),
-            EC_KEY_free
-        );
-        if (!key) return {nullptr, EC_KEY_free};
-
-        // 设置曲线
-        if (EC_KEY_set_group(key.get(), group.get()) != 1) {
-            return {nullptr, EC_KEY_free};
+        increment_key_count();
+        return true;
+        
+    } catch (const std::exception& e) {
+        set_error("secp256k1 private key generation failed: " + std::string(e.what()));
+        return false;
         }
-
-        // 设置私钥
-        BIGNUM* priv = BN_bin2bn(privateKey.data(), privateKey.size(), nullptr);
-        if (!priv) return {nullptr, EC_KEY_free};
-
-        if (EC_KEY_set_private_key(key.get(), priv) != 1) {
-            BN_free(priv);
-            return {nullptr, EC_KEY_free};
-        }
-
-        // 计算公钥
-        EC_POINT* pub = EC_POINT_new(group.get());
-        if (!pub) {
-            BN_free(priv);
-            return {nullptr, EC_KEY_free};
-        }
-
-        if (EC_POINT_mul(group.get(), pub, priv, nullptr, nullptr, nullptr) != 1) {
-            EC_POINT_free(pub);
-            BN_free(priv);
-            return {nullptr, EC_KEY_free};
-        }
-
-        if (EC_KEY_set_public_key(key.get(), pub) != 1) {
-            EC_POINT_free(pub);
-            BN_free(priv);
-            return {nullptr, EC_KEY_free};
-        }
-
-        EC_POINT_free(pub);
-        BN_free(priv);
-
-        return key;
-    }
-
-    // 工具函数: 从公钥数据创建EC_KEY
-    std::unique_ptr<EC_KEY, decltype(&EC_KEY_free)> createFromPublicKey(const PublicKey& publicKey) {
-        // 创建secp256k1曲线
-        std::unique_ptr<EC_GROUP, decltype(&EC_GROUP_free)> group(
-            EC_GROUP_new_by_curve_name(NID_secp256k1),
-            EC_GROUP_free
-        );
-        if (!group) return {nullptr, EC_KEY_free};
-
-        // 创建密钥对
-        std::unique_ptr<EC_KEY, decltype(&EC_KEY_free)> key(
-            EC_KEY_new(),
-            EC_KEY_free
-        );
-        if (!key) return {nullptr, EC_KEY_free};
-
-        // 设置曲线
-        if (EC_KEY_set_group(key.get(), group.get()) != 1) {
-            return {nullptr, EC_KEY_free};
-        }
-
-        // 从压缩格式解析公钥点
-        EC_POINT* pub = EC_POINT_new(group.get());
-        if (!pub) return {nullptr, EC_KEY_free};
-
-        if (EC_POINT_oct2point(group.get(), pub, publicKey.data(), publicKey.size(), nullptr) != 1) {
-            EC_POINT_free(pub);
-            return {nullptr, EC_KEY_free};
-        }
-
-        if (EC_KEY_set_public_key(key.get(), pub) != 1) {
-            EC_POINT_free(pub);
-            return {nullptr, EC_KEY_free};
-        }
-
-        EC_POINT_free(pub);
-
-        return key;
-    }
 }
 
-Secp256k1::Secp256k1() {}
+bool Secp256k1::derive_public_key(PublicKey& public_key, const PrivateKey& private_key) {
+    if (!context_) {
+        set_error("secp256k1 context not initialized");
+        return false;
+        }
 
-Secp256k1::~Secp256k1() {}
-
-std::optional<std::pair<PrivateKey, PublicKey>> Secp256k1::generateKeyPair() noexcept {
     try {
-        auto key = createKeyPair();
-        if (!key) {
-            setError("Failed to create key pair: " + getOpenSSLError());
-            return std::nullopt;
+        secp256k1_pubkey pubkey;
+        
+        // 从私钥创建公钥
+        if (!secp256k1_ec_pubkey_create(static_cast<secp256k1_context*>(context_), &pubkey, private_key.data())) {
+            set_error("Failed to create public key from private key");
+            return false;
         }
 
-        PrivateKey private_key = {};
-        if (!exportPrivateKey(key.get(), private_key)) {
-            setError("Failed to export private key: " + getOpenSSLError());
-            return std::nullopt;
+        // 序列化公钥（压缩格式）
+        size_t output_len = public_key.size();
+        if (!secp256k1_ec_pubkey_serialize(static_cast<secp256k1_context*>(context_), 
+                                          public_key.data(), &output_len, &pubkey, 
+                                          SECP256K1_EC_COMPRESSED)) {
+            set_error("Failed to serialize public key");
+            return false;
         }
 
-        PublicKey public_key = {};
-        if (!exportPublicKey(key.get(), public_key)) {
-            setError("Failed to export public key: " + getOpenSSLError());
-            return std::nullopt;
+        if (output_len != public_key.size()) {
+            set_error("Public key serialization length mismatch");
+            return false;
         }
 
-        return std::make_pair(private_key, public_key);
+        return true;
+        
     } catch (const std::exception& e) {
-        setError(std::string("Unexpected error: ") + e.what());
-        return std::nullopt;
-    }
-}
-
-std::optional<PublicKey> Secp256k1::derivePublicKey(const PrivateKey& privateKey) noexcept {
-    try {
-        auto key = createFromPrivateKey(privateKey);
-        if (!key) {
-            setError("Failed to create key from private key: " + getOpenSSLError());
-            return std::nullopt;
-        }
-
-        PublicKey public_key = {};
-        if (!exportPublicKey(key.get(), public_key)) {
-            setError("Failed to export public key: " + getOpenSSLError());
-            return std::nullopt;
-        }
-
-        return public_key;
-    } catch (const std::exception& e) {
-        setError(std::string("Unexpected error: ") + e.what());
-        return std::nullopt;
-    }
-}
-
-std::optional<Signature> Secp256k1::sign(const Bytes& message, const PrivateKey& privateKey) noexcept {
-    try {
-        auto key = createFromPrivateKey(privateKey);
-        if (!key) {
-            setError("Failed to create key from private key: " + getOpenSSLError());
-            return std::nullopt;
-        }
-
-        // 计算消息哈希
-        auto hash = sha256(message);
-
-        // 签名
-        std::unique_ptr<ECDSA_SIG, decltype(&ECDSA_SIG_free)> sig(
-            ECDSA_do_sign(hash.data(), hash.size(), key.get()),
-            ECDSA_SIG_free
-        );
-        if (!sig) {
-            setError("Failed to create signature: " + getOpenSSLError());
-            return std::nullopt;
-        }
-
-        // 获取r和s值
-        const BIGNUM* r = ECDSA_SIG_get0_r(sig.get());
-        const BIGNUM* s = ECDSA_SIG_get0_s(sig.get());
-        if (!r || !s) {
-            setError("Failed to get r and s values: " + getOpenSSLError());
-            return std::nullopt;
-        }
-
-        // 转换为R,S格式
-        Signature signature = {};
-        if (BN_bn2binpad(r, signature.data(), 32) != 32 ||
-            BN_bn2binpad(s, signature.data() + 32, 32) != 32) {
-            setError("Failed to convert signature to R,S format: " + getOpenSSLError());
-            return std::nullopt;
-        }
-
-        return signature;
-    } catch (const std::exception& e) {
-        setError(std::string("Unexpected error: ") + e.what());
-        return std::nullopt;
-    }
-}
-
-bool Secp256k1::verify(const Bytes& message, const Signature& signature, const PublicKey& publicKey) noexcept {
-    try {
-        auto key = createFromPublicKey(publicKey);
-        if (!key) {
-            setError("Failed to create key from public key: " + getOpenSSLError());
-            return false;
-        }
-
-        // 计算消息哈希
-        auto hash = sha256(message);
-
-        // 从R,S格式创建ECDSA_SIG
-        std::unique_ptr<ECDSA_SIG, decltype(&ECDSA_SIG_free)> sig(
-            ECDSA_SIG_new(),
-            ECDSA_SIG_free
-        );
-        if (!sig) {
-            setError("Failed to create ECDSA_SIG: " + getOpenSSLError());
-            return false;
-        }
-
-        // 设置r和s值
-        BIGNUM* r = BN_bin2bn(signature.data(), 32, nullptr);
-        BIGNUM* s = BN_bin2bn(signature.data() + 32, 32, nullptr);
-        if (!r || !s) {
-            BN_free(r);
-            BN_free(s);
-            setError("Failed to convert R,S to BIGNUM: " + getOpenSSLError());
-            return false;
-        }
-
-        if (ECDSA_SIG_set0(sig.get(), r, s) != 1) {
-            BN_free(r);
-            BN_free(s);
-            setError("Failed to set r and s values: " + getOpenSSLError());
-            return false;
-        }
-
-        // 验证签名
-        int result = ECDSA_do_verify(hash.data(), hash.size(), sig.get(), key.get());
-        if (result < 0) {
-            setError("Signature verification failed: " + getOpenSSLError());
-            return false;
-        }
-
-        return result == 1;
-    } catch (const std::exception& e) {
-        setError(std::string("Unexpected error: ") + e.what());
+        set_error("secp256k1 public key derivation failed: " + std::string(e.what()));
         return false;
     }
 }
 
-std::optional<std::array<uint8_t, 20>> Secp256k1::deriveAddress(const PublicKey& publicKey) noexcept {
-    try {
-        // 检查公钥格式
-        if (publicKey[0] != 0x02 && publicKey[0] != 0x03) {
-            setError("Invalid public key format");
-            return std::nullopt;
+// ========== ECDSA签名/验证 ==========
+
+bool Secp256k1::sign_ecdsa(Signature& signature, const Hash& message_hash, const PrivateKey& private_key) {
+    auto start_time = std::chrono::high_resolution_clock::now();
+    
+    if (!context_) {
+        set_error("secp256k1 context not initialized");
+        return false;
         }
 
-        // 计算Keccak-256哈希
-        auto hash = keccak256(std::vector<uint8_t>(publicKey.begin() + 1, publicKey.end()));
+    try {
+        secp256k1_ecdsa_signature sig;
         
-        // 取最后20字节作为地址
-        std::array<uint8_t, 20> address;
-        std::copy(hash.end() - 20, hash.end(), address.begin());
+        // 创建ECDSA签名
+        if (!secp256k1_ecdsa_sign(static_cast<secp256k1_context*>(context_), &sig, 
+                                 message_hash.data(), private_key.data(), nullptr, nullptr)) {
+            set_error("Failed to create ECDSA signature");
+            return false;
+        }
+
+        // 序列化签名为紧凑格式
+        if (!secp256k1_ecdsa_signature_serialize_compact(static_cast<secp256k1_context*>(context_),
+                                                        signature.data(), &sig)) {
+            set_error("Failed to serialize ECDSA signature");
+            return false;
+        }
+
+        increment_sign_count();
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+        record_sign_time(duration.count() / 1000.0);
         
-        return address;
+        return true;
+        
     } catch (const std::exception& e) {
-        setError(std::string("Unexpected error: ") + e.what());
-        return std::nullopt;
+        set_error("secp256k1 ECDSA signing failed: " + std::string(e.what()));
+        return false;
     }
+}
+
+bool Secp256k1::verify_ecdsa(const Signature& signature, const Hash& message_hash, const PublicKey& public_key) {
+    auto start_time = std::chrono::high_resolution_clock::now();
+    
+    if (!context_) {
+        set_error("secp256k1 context not initialized");
+            return false;
+        }
+
+    try {
+        secp256k1_ecdsa_signature sig;
+        secp256k1_pubkey pubkey;
+
+        // 解析紧凑格式签名
+        if (!secp256k1_ecdsa_signature_parse_compact(static_cast<secp256k1_context*>(context_),
+                                                    &sig, signature.data())) {
+            set_error("Failed to parse ECDSA signature");
+            return false;
+        }
+
+        // 解析公钥
+        if (!secp256k1_ec_pubkey_parse(static_cast<secp256k1_context*>(context_),
+                                      &pubkey, public_key.data(), public_key.size())) {
+            set_error("Failed to parse public key");
+            return false;
+        }
+
+        // 验证签名
+        bool result = secp256k1_ecdsa_verify(static_cast<secp256k1_context*>(context_),
+                                           &sig, message_hash.data(), &pubkey) == 1;
+        
+        increment_verify_count();
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+        record_verify_time(duration.count() / 1000.0);
+        
+        return result;
+        
+    } catch (const std::exception& e) {
+        set_error("secp256k1 ECDSA verification failed: " + std::string(e.what()));
+        return false;
+    }
+}
+
+// ========== 序列化/反序列化 ==========
+
+std::string Secp256k1::private_key_to_hex(const PrivateKey& key) {
+    return to_hex(key);
+}
+
+std::string Secp256k1::public_key_to_hex(const PublicKey& key) {
+    return to_hex(key);
+}
+
+std::string Secp256k1::signature_to_hex(const Signature& sig) {
+    return to_hex(sig);
+}
+
+bool Secp256k1::private_key_from_hex(PrivateKey& key, const std::string& hex) {
+    return from_hex(key, hex);
+}
+
+bool Secp256k1::public_key_from_hex(PublicKey& key, const std::string& hex) {
+    return from_hex(key, hex);
+        }
+
+bool Secp256k1::signature_from_hex(Signature& sig, const std::string& hex) {
+    return from_hex(sig, hex);
+}
+
+// ========== 验证和工具 ==========
+
+bool Secp256k1::is_valid_private_key(const PrivateKey& private_key) {
+    if (!context_) {
+        return false;
+    }
+    return secp256k1_ec_seckey_verify(static_cast<secp256k1_context*>(context_), private_key.data()) == 1;
+}
+
+bool Secp256k1::is_valid_public_key(const PublicKey& public_key) {
+    if (!context_) {
+        return false;
+    }
+    secp256k1_pubkey pubkey;
+    return secp256k1_ec_pubkey_parse(static_cast<secp256k1_context*>(context_),
+                                    &pubkey, public_key.data(), public_key.size()) == 1;
+}
+
+Secp256k1::Hash Secp256k1::hash_message(const Message& message) {
+    return sha256(message);
+}
+
+// ========== 私有方法 ==========
+
+void Secp256k1::record_sign_time(double time_ms) const {
+    stats_.total_sign_time_ms += time_ms;
+}
+
+void Secp256k1::record_verify_time(double time_ms) const {
+    stats_.total_verify_time_ms += time_ms;
 }
 
 } // namespace crypto

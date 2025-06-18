@@ -1,277 +1,355 @@
 #include "crypto/core/ed25519.hpp"
-#include <openssl/evp.h>
-#include <openssl/err.h>
-#include <memory>
+#include <sodium.h>
+#include <chrono>
+#include <cstring>
 
 namespace duckchain {
 namespace crypto {
 
-namespace {
-    // 工具函数: 获取OpenSSL错误信息
-    std::string getOpenSSLError() {
-        char err_buf[256];
-        unsigned long err = ERR_get_error();
-        ERR_error_string_n(err, err_buf, sizeof(err_buf));
-        return std::string(err_buf);
-    }
+using namespace utils;
 
-    // 工具函数: 计算SHA256哈希
-    std::vector<uint8_t> sha256(const std::vector<uint8_t>& data) {
-        std::vector<uint8_t> hash(32);
-        std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx(
-            EVP_MD_CTX_new(),
-            EVP_MD_CTX_free
-        );
-        EVP_DigestInit_ex(ctx.get(), EVP_sha256(), nullptr);
-        EVP_DigestUpdate(ctx.get(), data.data(), data.size());
-        EVP_DigestFinal_ex(ctx.get(), hash.data(), nullptr);
-        return hash;
-    }
-
-    // 工具函数: 计算Keccak-256哈希
-    std::vector<uint8_t> keccak256(const std::vector<uint8_t>& data) {
-        std::vector<uint8_t> hash(32);
-        std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx(
-            EVP_MD_CTX_new(),
-            EVP_MD_CTX_free
-        );
-        EVP_DigestInit_ex(ctx.get(), EVP_sha3_256(), nullptr);
-        EVP_DigestUpdate(ctx.get(), data.data(), data.size());
-        EVP_DigestFinal_ex(ctx.get(), hash.data(), nullptr);
-        return hash;
-    }
+// 全局统计对象
+Ed25519::Statistics& Ed25519::get_statistics() {
+    static Statistics stats;
+    return stats;
 }
 
-Ed25519::Ed25519() {}
-
-Ed25519::~Ed25519() {}
-
-std::optional<std::pair<Ed25519PrivateKey, Ed25519PublicKey>> Ed25519::generateKeyPair() noexcept {
-    try {
-        // 创建密钥对
-        std::unique_ptr<EVP_PKEY_CTX, decltype(&EVP_PKEY_CTX_free)> ctx(
-            EVP_PKEY_CTX_new_id(EVP_PKEY_ED25519, nullptr),
-            EVP_PKEY_CTX_free
-        );
-        if (!ctx) {
-            setError("Failed to create key context: " + getOpenSSLError());
-            return std::nullopt;
-        }
-
-        if (EVP_PKEY_keygen_init(ctx.get()) <= 0) {
-            setError("Failed to initialize key generation: " + getOpenSSLError());
-            return std::nullopt;
-        }
-
-        EVP_PKEY* pkey_raw = nullptr;
-        if (EVP_PKEY_keygen(ctx.get(), &pkey_raw) <= 0) {
-            setError("Failed to generate key pair: " + getOpenSSLError());
-            return std::nullopt;
-        }
-        std::unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)> pkey(pkey_raw, EVP_PKEY_free);
-
-        // 导出私钥
-        Ed25519PrivateKey private_key;
-        size_t private_key_len = private_key.size();
-        if (EVP_PKEY_get_raw_private_key(pkey.get(), private_key.data(), &private_key_len) <= 0) {
-            setError("Failed to export private key: " + getOpenSSLError());
-            return std::nullopt;
-        }
-
-        // 导出公钥
-        Ed25519PublicKey public_key;
-        size_t public_key_len = public_key.size();
-        if (EVP_PKEY_get_raw_public_key(pkey.get(), public_key.data(), &public_key_len) <= 0) {
-            setError("Failed to export public key: " + getOpenSSLError());
-            return std::nullopt;
-        }
-
-        return std::make_pair(private_key, public_key);
-    } catch (const std::exception& e) {
-        setError(std::string("Unexpected error: ") + e.what());
-        return std::nullopt;
-    }
+void Ed25519::increment_keypair_count() {
+    get_statistics().keypairs_generated++;
 }
 
-std::optional<Ed25519PublicKey> Ed25519::derivePublicKey(const Ed25519PrivateKey& privateKey) noexcept {
-    try {
-        // 检查私钥是否全为0
-        bool all_zero = true;
-        for (auto byte : privateKey) {
-            if (byte != 0) {
-                all_zero = false;
-                break;
-            }
-        }
-        if (all_zero) {
-            setError("Invalid private key: all zeros");
-            return std::nullopt;
-        }
-
-        // 从私钥创建 EVP_PKEY
-        std::unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)> pkey(
-            EVP_PKEY_new_raw_private_key(EVP_PKEY_ED25519, nullptr, privateKey.data(), privateKey.size()),
-            EVP_PKEY_free
-        );
-        if (!pkey) {
-            setError("Failed to create key from private key: " + getOpenSSLError());
-            return std::nullopt;
-        }
-
-        // 导出公钥
-        Ed25519PublicKey public_key;
-        size_t public_key_len = public_key.size();
-        if (EVP_PKEY_get_raw_public_key(pkey.get(), public_key.data(), &public_key_len) <= 0) {
-            setError("Failed to export public key: " + getOpenSSLError());
-            return std::nullopt;
-        }
-
-        return public_key;
-    } catch (const std::exception& e) {
-        setError(std::string("Unexpected error: ") + e.what());
-        return std::nullopt;
-    }
+void Ed25519::increment_sign_count() {
+    get_statistics().signatures_created++;
 }
 
-std::optional<Ed25519Signature> Ed25519::sign(const Bytes& message, const Ed25519PrivateKey& privateKey) noexcept {
-    try {
-        // 检查私钥是否全为0
-        bool all_zero = true;
-        for (auto byte : privateKey) {
-            if (byte != 0) {
-                all_zero = false;
-                break;
-            }
-        }
-        if (all_zero) {
-            setError("Invalid private key: all zeros");
-            return std::nullopt;
-        }
-
-        // 从私钥创建 EVP_PKEY
-        std::unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)> pkey(
-            EVP_PKEY_new_raw_private_key(EVP_PKEY_ED25519, nullptr, privateKey.data(), privateKey.size()),
-            EVP_PKEY_free
-        );
-        if (!pkey) {
-            setError("Failed to create key from private key: " + getOpenSSLError());
-            return std::nullopt;
-        }
-
-        // 创建签名上下文
-        std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx(
-            EVP_MD_CTX_new(),
-            EVP_MD_CTX_free
-        );
-        if (!ctx) {
-            setError("Failed to create signature context: " + getOpenSSLError());
-            return std::nullopt;
-        }
-
-        // 初始化签名
-        if (EVP_DigestSignInit(ctx.get(), nullptr, nullptr, nullptr, pkey.get()) <= 0) {
-            setError("Failed to initialize signature: " + getOpenSSLError());
-            return std::nullopt;
-        }
-
-        // 签名
-        Ed25519Signature signature;
-        size_t sig_len = signature.size();
-        if (EVP_DigestSign(ctx.get(), signature.data(), &sig_len, message.data(), message.size()) <= 0) {
-            setError("Failed to create signature: " + getOpenSSLError());
-            return std::nullopt;
-        }
-
-        return signature;
-    } catch (const std::exception& e) {
-        setError(std::string("Unexpected error: ") + e.what());
-        return std::nullopt;
-    }
+void Ed25519::increment_verify_count() {
+    get_statistics().signatures_verified++;
 }
 
-bool Ed25519::verify(const Bytes& message, const Ed25519Signature& signature, const Ed25519PublicKey& publicKey) noexcept {
+void Ed25519::record_sign_time(double time_ms) const {
+    // TODO: Add signing time statistics if needed
+}
+
+void Ed25519::record_verify_time(double time_ms) const {
+    // TODO: Add verification time statistics if needed
+}
+
+void Ed25519::set_error(const std::string& error) const {
+    // TODO: Add error handling if needed
+}
+
+// ========== 密钥生成 ==========
+
+bool Ed25519::generate_keypair(PrivateKey& private_key, PublicKey& public_key) {
+    auto start_time = std::chrono::high_resolution_clock::now();
+    
     try {
-        // 检查公钥是否全为0
-        bool all_zero = true;
-        for (auto byte : publicKey) {
-            if (byte != 0) {
-                all_zero = false;
-                break;
-            }
-        }
-        if (all_zero) {
-            setError("Invalid public key: all zeros");
+        // libsodium的Ed25519密钥生成
+        int result = crypto_sign_keypair(public_key.data(), private_key.data());
+        
+        if (result != 0) {
+            set_error("Failed to generate Ed25519 keypair");
             return false;
         }
-
-        // 从公钥创建 EVP_PKEY
-        std::unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)> pkey(
-            EVP_PKEY_new_raw_public_key(EVP_PKEY_ED25519, nullptr, publicKey.data(), publicKey.size()),
-            EVP_PKEY_free
-        );
-        if (!pkey) {
-            setError("Failed to create key from public key: " + getOpenSSLError());
-            return false;
-        }
-
-        // 创建验证上下文
-        std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> ctx(
-            EVP_MD_CTX_new(),
-            EVP_MD_CTX_free
-        );
-        if (!ctx) {
-            setError("Failed to create verification context: " + getOpenSSLError());
-            return false;
-        }
-
-        // 初始化验证
-        if (EVP_DigestVerifyInit(ctx.get(), nullptr, nullptr, nullptr, pkey.get()) <= 0) {
-            setError("Failed to initialize verification: " + getOpenSSLError());
-            return false;
-        }
-
-        // 验证签名
-        int result = EVP_DigestVerify(ctx.get(), signature.data(), signature.size(),
-                                    message.data(), message.size());
-        if (result < 0) {
-            setError("Signature verification failed: " + getOpenSSLError());
-            return false;
-        }
-
-        return result == 1;
+        
+        increment_keypair_count();
+        
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+        // 记录密钥生成时间（如果需要的话）
+        
+        return true;
+        
     } catch (const std::exception& e) {
-        setError(std::string("Unexpected error: ") + e.what());
+        set_error("Ed25519 keypair generation failed: " + std::string(e.what()));
         return false;
     }
 }
 
-std::optional<Ed25519Address> Ed25519::deriveAddress(const Ed25519PublicKey& publicKey) noexcept {
+bool Ed25519::keypair_from_seed(PrivateKey& private_key, PublicKey& public_key, const Seed& seed) {
+    auto start_time = std::chrono::high_resolution_clock::now();
+    
     try {
-        // 检查公钥是否全为0
-        bool all_zero = true;
-        for (auto byte : publicKey) {
-            if (byte != 0) {
-                all_zero = false;
-                break;
+        // 从种子生成确定性密钥对
+        int result = crypto_sign_seed_keypair(public_key.data(), private_key.data(), seed.data());
+        
+        if (result != 0) {
+            set_error("Failed to generate Ed25519 keypair from seed");
+            return false;
+        }
+        
+        increment_keypair_count();
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+        // 记录密钥生成时间（如果需要的话）
+        
+        return true;
+        
+    } catch (const std::exception& e) {
+        set_error("Ed25519 keypair from seed failed: " + std::string(e.what()));
+        return false;
+    }
+}
+
+bool Ed25519::derive_public_key(PublicKey& public_key, const PrivateKey& private_key) {
+    auto start_time = std::chrono::high_resolution_clock::now();
+    
+    try {
+        // libsodium中，私钥实际上包含了公钥
+        // 我们需要提取公钥部分
+        
+        // Ed25519私钥的后32字节是公钥
+        std::memcpy(public_key.data(), private_key.data() + 32, 32);
+        
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+        // 记录密钥生成时间（如果需要的话）
+        
+        return true;
+        
+    } catch (const std::exception& e) {
+        set_error("Ed25519 public key derivation failed: " + std::string(e.what()));
+        return false;
+    }
+}
+
+// ========== 签名/验证 ==========
+
+bool Ed25519::sign(Signature& signature, const Message& message, const PrivateKey& private_key) {
+    auto start_time = std::chrono::high_resolution_clock::now();
+    
+    try {
+        unsigned long long sig_len;
+        
+        // 使用libsodium进行签名
+        int result = crypto_sign_detached(
+            signature.data(),
+            &sig_len,
+            message.data(),
+            message.size(),
+            private_key.data()
+        );
+        
+        if (result != 0 || sig_len != signature.size()) {
+            set_error("Ed25519 signing failed");
+            return false;
+        }
+        
+        increment_sign_count();
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+        record_sign_time(duration.count() / 1000.0);
+        
+        return true;
+        
+    } catch (const std::exception& e) {
+        set_error("Ed25519 signing failed: " + std::string(e.what()));
+        return false;
+    }
+}
+
+bool Ed25519::verify(const Signature& signature, const Message& message, const PublicKey& public_key) {
+    auto start_time = std::chrono::high_resolution_clock::now();
+    
+    try {
+        // 使用libsodium进行验证
+        int result = crypto_sign_verify_detached(
+            signature.data(),
+            message.data(),
+            message.size(),
+            public_key.data()
+        );
+        
+        bool success = (result == 0);
+        
+        increment_verify_count();
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+        record_verify_time(duration.count() / 1000.0);
+        
+        return success;
+        
+    } catch (const std::exception& e) {
+        set_error("Ed25519 verification failed: " + std::string(e.what()));
+        return false;
+    }
+}
+
+bool Ed25519::sign_detached(Signature& signature, const Message& message, const PrivateKey& private_key) {
+    return sign(signature, message, private_key);
+}
+
+bool Ed25519::verify_detached(const Signature& signature, const Message& message, const PublicKey& public_key) {
+    return verify(signature, message, public_key);
+}
+
+// ========== 多签名支持 ==========
+
+bool Ed25519::aggregate_public_keys(PublicKey& aggregated_key, const std::vector<PublicKey>& public_keys) {
+    if (public_keys.empty()) {
+        set_error("No public keys to aggregate");
+        return false;
+    }
+    
+    try {
+        // 简单的公钥聚合（XOR方式，不是真正的EdDSA聚合）
+        // 注意：这不是标准的Ed25519聚合方式
+        aggregated_key.fill(0);
+        
+        for (const auto& pk : public_keys) {
+            for (size_t i = 0; i < aggregated_key.size(); ++i) {
+                aggregated_key[i] ^= pk[i];
             }
         }
-        if (all_zero) {
-            setError("Invalid public key: all zeros");
-            return std::nullopt;
-        }
-
-        // 计算公钥的 SHA3-256 哈希
-        auto hash = keccak256(std::vector<uint8_t>(publicKey.begin(), publicKey.end()));
         
-        // 取最后20字节作为地址
-        Ed25519Address address;
-        std::copy(hash.end() - address.size(), hash.end(), address.begin());
+        return true;
         
-        return address;
     } catch (const std::exception& e) {
-        setError(std::string("Unexpected error: ") + e.what());
-        return std::nullopt;
+        set_error("Ed25519 public key aggregation failed: " + std::string(e.what()));
+        return false;
     }
+}
+
+bool Ed25519::verify_multisig(const std::vector<Signature>& signatures, 
+                              const Message& message,
+                              const std::vector<PublicKey>& public_keys,
+                              size_t threshold) {
+    if (signatures.size() != public_keys.size()) {
+        set_error("Signature and public key count mismatch");
+        return false;
+    }
+    
+    if (signatures.size() < threshold) {
+        set_error("Insufficient signatures for threshold");
+        return false;
+    }
+    
+    try {
+        size_t valid_signatures = 0;
+        
+        // 验证每个签名
+        for (size_t i = 0; i < signatures.size(); ++i) {
+            if (verify(signatures[i], message, public_keys[i])) {
+                valid_signatures++;
+            }
+        }
+        
+        return valid_signatures >= threshold;
+        
+    } catch (const std::exception& e) {
+        set_error("Ed25519 multisig verification failed: " + std::string(e.what()));
+        return false;
+    }
+}
+
+// ========== 序列化/反序列化 ==========
+
+std::string Ed25519::private_key_to_hex(const PrivateKey& key) {
+    return to_hex(key);
+}
+
+std::string Ed25519::public_key_to_hex(const PublicKey& key) {
+    return to_hex(key);
+}
+
+std::string Ed25519::signature_to_hex(const Signature& sig) {
+    return to_hex(sig);
+}
+
+std::string Ed25519::seed_to_hex(const Seed& seed) {
+    return to_hex(seed);
+}
+
+bool Ed25519::private_key_from_hex(PrivateKey& key, const std::string& hex) {
+    return from_hex(key, hex);
+}
+
+bool Ed25519::public_key_from_hex(PublicKey& key, const std::string& hex) {
+    return from_hex(key, hex);
+}
+
+bool Ed25519::signature_from_hex(Signature& sig, const std::string& hex) {
+    return from_hex(sig, hex);
+}
+
+bool Ed25519::seed_from_hex(Seed& seed, const std::string& hex) {
+    return from_hex(seed, hex);
+}
+
+std::string Ed25519::private_key_to_base64(const PrivateKey& key) {
+    return to_base64(key.data(), key.size());
+}
+
+std::string Ed25519::public_key_to_base64(const PublicKey& key) {
+    return to_base64(key.data(), key.size());
+}
+
+std::string Ed25519::signature_to_base64(const Signature& sig) {
+    return to_base64(sig.data(), sig.size());
+}
+
+bool Ed25519::private_key_from_base64(PrivateKey& key, const std::string& base64) {
+    std::vector<uint8_t> temp;
+    if (!from_base64(temp, base64) || temp.size() != key.size()) {
+        return false;
+    }
+    std::copy(temp.begin(), temp.end(), key.begin());
+    return true;
+}
+
+bool Ed25519::public_key_from_base64(PublicKey& key, const std::string& base64) {
+    std::vector<uint8_t> temp;
+    if (!from_base64(temp, base64) || temp.size() != key.size()) {
+        return false;
+    }
+    std::copy(temp.begin(), temp.end(), key.begin());
+    return true;
+}
+
+bool Ed25519::signature_from_base64(Signature& sig, const std::string& base64) {
+    std::vector<uint8_t> temp;
+    if (!from_base64(temp, base64) || temp.size() != sig.size()) {
+        return false;
+    }
+    std::copy(temp.begin(), temp.end(), sig.begin());
+    return true;
+}
+
+// ========== 验证和工具 ==========
+
+bool Ed25519::is_valid_private_key(const PrivateKey& private_key) {
+    // 检查私钥不全为零
+    for (auto byte : private_key) {
+        if (byte != 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Ed25519::is_valid_public_key(const PublicKey& public_key) {
+    // libsodium提供了公钥验证函数
+    // 但我们做简单检查：不全为零
+    for (auto byte : public_key) {
+        if (byte != 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Ed25519::is_valid_signature(const Signature& signature) {
+    // 检查签名不全为零
+    for (auto byte : signature) {
+        if (byte != 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Ed25519::generate_seed(Seed& seed) {
+    return secure_random_bytes(seed);
 }
 
 } // namespace crypto

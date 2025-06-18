@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 #include "crypto/core/secp256k1.hpp"
-#include <array>
 
 using namespace duckchain::crypto;
 
@@ -9,86 +8,118 @@ protected:
     void SetUp() override {
         secp256k1 = std::make_unique<Secp256k1>();
     }
-
+    
     void TearDown() override {
         secp256k1.reset();
     }
-
+    
     std::unique_ptr<Secp256k1> secp256k1;
 };
 
-// 基本功能测试
-TEST_F(Secp256k1Test, KeyGeneration) {
-    auto key_pair = secp256k1->generateKeyPair();
-    ASSERT_TRUE(key_pair.has_value()) << secp256k1->getLastError();
+// ========== 密钥生成测试 ==========
+
+TEST_F(Secp256k1Test, GeneratePrivateKey) {
+    Secp256k1::PrivateKey private_key;
     
-    const auto& [priv_key, pub_key] = *key_pair;
-    EXPECT_EQ(priv_key.size(), 32);
-    EXPECT_EQ(pub_key.size(), 33);
-    EXPECT_TRUE(pub_key[0] == 0x02 || pub_key[0] == 0x03) << "Invalid public key format";
+    EXPECT_TRUE(secp256k1->generate_private_key(private_key));
+    EXPECT_TRUE(secp256k1->is_valid_private_key(private_key));
 }
 
-TEST_F(Secp256k1Test, PublicKeyDerivation) {
-    auto key_pair = secp256k1->generateKeyPair();
-    ASSERT_TRUE(key_pair.has_value());
+TEST_F(Secp256k1Test, DerivePublicKey) {
+    Secp256k1::PrivateKey private_key;
+    Secp256k1::PublicKey public_key;
     
-    const auto& [priv_key, pub_key] = *key_pair;
-    auto derived_pub = secp256k1->derivePublicKey(priv_key);
-    
-    ASSERT_TRUE(derived_pub.has_value()) << secp256k1->getLastError();
-    EXPECT_EQ(*derived_pub, pub_key);
+    EXPECT_TRUE(secp256k1->generate_private_key(private_key));
+    EXPECT_TRUE(secp256k1->derive_public_key(public_key, private_key));
+    EXPECT_TRUE(secp256k1->is_valid_public_key(public_key));
 }
 
-// 签名测试
-TEST_F(Secp256k1Test, SignAndVerify) {
-    auto key_pair = secp256k1->generateKeyPair();
-    ASSERT_TRUE(key_pair.has_value());
+// ========== ECDSA签名和验证测试 ==========
+
+TEST_F(Secp256k1Test, ECDSASignAndVerify) {
+    Secp256k1::PrivateKey private_key;
+    Secp256k1::PublicKey public_key;
     
-    const auto& [priv_key, pub_key] = *key_pair;
-    Bytes message = {1, 2, 3, 4, 5};
+    EXPECT_TRUE(secp256k1->generate_private_key(private_key));
+    EXPECT_TRUE(secp256k1->derive_public_key(public_key, private_key));
     
-    auto signature = secp256k1->sign(message, priv_key);
-    ASSERT_TRUE(signature.has_value()) << secp256k1->getLastError();
+    std::string message_str = "Hello, secp256k1!";
+    Secp256k1::Message message(message_str.begin(), message_str.end());
+    auto message_hash = secp256k1->hash_message(message);
+    Secp256k1::Signature signature;
     
-    bool verified = secp256k1->verify(message, *signature, pub_key);
-    EXPECT_TRUE(verified) << secp256k1->getLastError();
+    // 签名
+    EXPECT_TRUE(secp256k1->sign_ecdsa(signature, message_hash, private_key));
+    
+    // 验证
+    EXPECT_TRUE(secp256k1->verify_ecdsa(signature, message_hash, public_key));
 }
 
-// 地址生成测试
-TEST_F(Secp256k1Test, AddressGeneration) {
-    auto key_pair = secp256k1->generateKeyPair();
-    ASSERT_TRUE(key_pair.has_value());
+TEST_F(Secp256k1Test, ECDSAVerifyWithWrongHash) {
+    Secp256k1::PrivateKey private_key;
+    Secp256k1::PublicKey public_key;
     
-    const auto& [priv_key, pub_key] = *key_pair;
-    auto address = secp256k1->deriveAddress(pub_key);
+    EXPECT_TRUE(secp256k1->generate_private_key(private_key));
+    EXPECT_TRUE(secp256k1->derive_public_key(public_key, private_key));
     
-    ASSERT_TRUE(address.has_value()) << secp256k1->getLastError();
-    EXPECT_EQ(address->size(), 20);
+    std::string message_str = "Original message";
+    Secp256k1::Message message(message_str.begin(), message_str.end());
+    auto message_hash = secp256k1->hash_message(message);
+    Secp256k1::Signature signature;
+    
+    EXPECT_TRUE(secp256k1->sign_ecdsa(signature, message_hash, private_key));
+    
+    // 用错误的消息哈希验证应该失败
+    std::string wrong_message_str = "Wrong message";
+    Secp256k1::Message wrong_message(wrong_message_str.begin(), wrong_message_str.end());
+    auto wrong_hash = secp256k1->hash_message(wrong_message);
+    EXPECT_FALSE(secp256k1->verify_ecdsa(signature, wrong_hash, public_key));
 }
 
-// 错误处理测试
-TEST_F(Secp256k1Test, InvalidPrivateKey) {
-    PrivateKey invalid_key = {};  // 全0私钥
-    auto pub_key = secp256k1->derivePublicKey(invalid_key);
-    EXPECT_FALSE(pub_key.has_value()) << "Should fail with invalid private key";
-    EXPECT_FALSE(secp256k1->getLastError().empty()) << "Should have error message";
+// ========== 序列化测试 ==========
+
+TEST_F(Secp256k1Test, HexSerialization) {
+    Secp256k1::PrivateKey private_key;
+    Secp256k1::PublicKey public_key;
+    
+    EXPECT_TRUE(secp256k1->generate_private_key(private_key));
+    EXPECT_TRUE(secp256k1->derive_public_key(public_key, private_key));
+    
+    // 私钥序列化
+    std::string private_hex = secp256k1->private_key_to_hex(private_key);
+    EXPECT_EQ(private_hex.length(), 64);  // 32字节 = 64个十六进制字符
+    
+    Secp256k1::PrivateKey private_key_restored;
+    EXPECT_TRUE(secp256k1->private_key_from_hex(private_key_restored, private_hex));
+    EXPECT_EQ(private_key, private_key_restored);
 }
 
-// 性能测试
+// ========== 性能测试 ==========
+
 TEST_F(Secp256k1Test, SigningPerformance) {
-    auto key_pair = secp256k1->generateKeyPair();
-    ASSERT_TRUE(key_pair.has_value());
+    Secp256k1::PrivateKey private_key;
+    Secp256k1::PublicKey public_key;
     
-    const auto& [priv_key, pub_key] = *key_pair;
-    Bytes message(32, 0x42);  // 32字节消息
+    EXPECT_TRUE(secp256k1->generate_private_key(private_key));
+    EXPECT_TRUE(secp256k1->derive_public_key(public_key, private_key));
     
+    std::string message_str = "Performance test";
+    Secp256k1::Message message(message_str.begin(), message_str.end());
+    auto message_hash = secp256k1->hash_message(message);
+    
+    const int iterations = 100;
     auto start = std::chrono::high_resolution_clock::now();
-    for(int i = 0; i < 100; i++) {
-        auto signature = secp256k1->sign(message, priv_key);
-        ASSERT_TRUE(signature.has_value());
-    }
-    auto end = std::chrono::high_resolution_clock::now();
     
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::cout << "100 signatures took " << duration.count() << "ms" << std::endl;
+    for (int i = 0; i < iterations; ++i) {
+        Secp256k1::Signature signature;
+        EXPECT_TRUE(secp256k1->sign_ecdsa(signature, message_hash, private_key));
+    }
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    
+    double avg_time = static_cast<double>(duration.count()) / iterations;
+    std::cout << "Average secp256k1 ECDSA signing time: " << avg_time << " μs" << std::endl;
+    
+    EXPECT_LT(avg_time, 1000);  // 少于1ms
 } 
