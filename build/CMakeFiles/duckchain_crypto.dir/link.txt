@@ -1,2 +1,0 @@
-/usr/bin/ar qc libduckchain_crypto.a CMakeFiles/duckchain_crypto.dir/src/crypto/utils/crypto_utils.cpp.o CMakeFiles/duckchain_crypto.dir/src/crypto/core/ed25519.cpp.o CMakeFiles/duckchain_crypto.dir/src/crypto/core/secp256k1.cpp.o CMakeFiles/duckchain_crypto.dir/src/crypto/core/bls12_381.cpp.o
-/usr/bin/ranlib libduckchain_crypto.a
